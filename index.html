@@ -7081,10 +7081,7 @@ function parseSchoolInfo(text) {
     result.tokucho = tokuchoLines.join('<br><br>').replace(/\n/g, '<br>');
   }
 
-  // 偏差値情報も特色に追加
-  if (result.hensachi) {
-    result.tokucho = (result.tokucho ? result.tokucho + '<br><br>' : '') + '<strong>偏差値情報</strong>: ' + result.hensachi;
-  }
+  // 偏差値情報は入試データ欄に表示済みのため、特色欄には追加しない
 
   return result;
 }
