@@ -918,12 +918,12 @@ padding:8px;
 </div>
 
 <div class="card">
-<div class="card-title"><span class="icon">住</span>住所（任意）</div>
+<div class="card-title"><span class="icon">住</span>自宅の郵便番号（任意）</div>
 <div class="input-group">
-<label>自宅住所</label>
-<input type="text" id="addressInput" placeholder="例：岡山市北区..." oninput="clearAddressResult()">
-<div class="input-hint">住所を入力すると各学校までの距離を表示します</div>
-<button class="quick-btn" style="margin-top:8px" onclick="geocodeAddress()">距離を計算</button>
+<label>郵便番号（ハイフンなしでOK）</label>
+<input type="tel" id="zipInput" placeholder="例：7000036" maxlength="8" inputmode="numeric" oninput="clearAddressResult()">
+<div class="input-hint">郵便番号を入力すると各学校までの距離を表示します</div>
+<button class="quick-btn" style="margin-top:8px" onclick="geocodeByZip()">距離を計算</button>
 <div class="address-status" id="addressStatus"></div>
 </div>
 </div>
@@ -6675,23 +6675,47 @@ function clearAddressResult() {
   document.getElementById('addressStatus').className = 'address-status';
 }
 
-function geocodeAddress() {
-  var addr = document.getElementById('addressInput').value.trim();
-  if (!addr) return;
+function geocodeByZip() {
+  var zip = document.getElementById('zipInput').value.trim().replace(/[-ー−]/g, '');
+  if (!zip || zip.length < 7) {
+    var status = document.getElementById('addressStatus');
+    status.textContent = '7桁の郵便番号を入力してください';
+    status.className = 'address-status error';
+    return;
+  }
   var status = document.getElementById('addressStatus');
   status.textContent = '検索中...';
   status.className = 'address-status loading';
-  var url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(addr + ' 岡山県');
+
+  // zipcloudで郵便番号→住所を取得し、Nominatimで座標に変換
+  var script = document.createElement('script');
+  script.src = 'https://zipcloud.ibsnet.co.jp/api/search?zipcode=' + zip + '&callback=handleZipResult';
+  document.body.appendChild(script);
+}
+
+function handleZipResult(data) {
+  var status = document.getElementById('addressStatus');
+  if (!data.results || data.results.length === 0) {
+    status.textContent = '郵便番号が見つかりませんでした';
+    status.className = 'address-status error';
+    return;
+  }
+  var r = data.results[0];
+  var addr = r.address1 + r.address2 + r.address3;
+  status.textContent = addr + ' で検索中...';
+
+  // Nominatimで座標取得
+  var url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(addr);
   fetch(url, {headers:{'Accept-Language':'ja'}})
     .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data.length > 0) {
-        userLat = parseFloat(data[0].lat);
-        userLng = parseFloat(data[0].lon);
-        status.textContent = '位置を取得しました';
+    .then(function(geoData) {
+      if (geoData.length > 0) {
+        userLat = parseFloat(geoData[0].lat);
+        userLng = parseFloat(geoData[0].lon);
+        status.textContent = '📍 ' + addr + ' の位置で距離を計算します';
         status.className = 'address-status success';
       } else {
-        status.textContent = '住所が見つかりませんでした。より詳細な住所を入力してください。';
+        status.textContent = '位置情報を取得できませんでした';
         status.className = 'address-status error';
       }
     })
