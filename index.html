@@ -7133,12 +7133,6 @@ function renderSchoolDetailContent() {
   } else {
     // 自己診目標点 = 必要当日点 / 0.7
     var jikosinMokuhyou = Math.round(school.requiredExamScore / 0.7);
-    // 偏差値 = 0.1775 * 自己診目標点(5教科ベース) - 4.21
-    var jikosinForHensachi = jikosinMokuhyou;
-    if (isTokubetsu) {
-      jikosinForHensachi = Math.round(jikosinMokuhyou * 500 / 300);
-    }
-    var 偏差値 = (0.1775 * jikosinForHensachi - 4.21).toFixed(1);
     // 得点率
     var tokutsuritsu = school.passRate || (Math.round(school.requiredTotalScore / (200 + toujitsuMax) * 100) + '%');
     html += '<tr><td>必要内申点</td><td>' + school.requiredNaishin + ' / 200</td></tr>';
@@ -7146,7 +7140,7 @@ function renderSchoolDetailContent() {
     html += '<tr><td>必要総合点</td><td>' + school.requiredTotalScore + '</td></tr>';
     html += '<tr><td>得点率</td><td>' + tokutsuritsu + '</td></tr>';
     html += '<tr><td>自己診目標点</td><td>' + jikosinMokuhyou + ' / ' + rawMax + '</td></tr>';
-    html += '<tr><td>偏差値（推定）</td><td><span class="detail-hensachi">' + 偏差値 + '</span></td></tr>';
+    html += '<tr><td>偏差値</td><td><span class="detail-hensachi">' + (school.hensachi || '---') + '</span></td></tr>';
   }
   html += '</table>';
   html += '</div>';
