@@ -860,9 +860,123 @@ color:var(--gray-400);
 margin:8px 0;
 padding:8px;
 }
+.login-overlay{
+position:fixed;
+top:0;left:0;right:0;bottom:0;
+background:linear-gradient(135deg,var(--primary-dark),var(--primary),var(--primary-light));
+z-index:9999;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:20px;
+}
+.login-overlay.hidden{display:none}
+.login-box{
+background:var(--white);
+border-radius:16px;
+padding:32px 24px 28px;
+width:100%;
+max-width:360px;
+box-shadow:0 20px 60px rgba(0,0,0,0.35);
+text-align:center;
+}
+.login-box h2{
+font-size:1.15rem;
+font-weight:900;
+color:var(--primary);
+margin-bottom:6px;
+letter-spacing:0.03em;
+}
+.login-box .login-subtitle{
+font-size:0.78rem;
+color:var(--gray-500);
+margin-bottom:22px;
+line-height:1.5;
+}
+.login-box .login-input-group{
+margin-bottom:14px;
+text-align:left;
+}
+.login-box label{
+display:block;
+font-size:0.78rem;
+font-weight:600;
+color:var(--gray-700);
+margin-bottom:6px;
+}
+.login-box input[type="password"],
+.login-box input[type="text"]{
+width:100%;
+padding:12px 14px;
+font-size:1rem;
+border:2px solid var(--gray-200);
+border-radius:10px;
+background:var(--gray-50);
+outline:none;
+transition:border-color 0.2s,background 0.2s;
+font-family:'Noto Sans JP',sans-serif;
+}
+.login-box input[type="password"]:focus,
+.login-box input[type="text"]:focus{
+border-color:var(--primary);
+background:var(--white);
+}
+.login-box .login-btn{
+width:100%;
+padding:13px;
+background:linear-gradient(135deg,var(--primary),var(--primary-light));
+color:var(--white);
+border:none;
+border-radius:10px;
+font-size:1rem;
+font-weight:700;
+cursor:pointer;
+letter-spacing:0.05em;
+box-shadow:0 4px 12px rgba(26,71,138,0.3);
+transition:transform 0.1s,box-shadow 0.2s;
+font-family:'Noto Sans JP',sans-serif;
+}
+.login-box .login-btn:active{
+transform:translateY(1px);
+box-shadow:0 2px 6px rgba(26,71,138,0.3);
+}
+.login-box .login-error{
+color:#ef4444;
+font-size:0.78rem;
+margin-top:10px;
+min-height:18px;
+font-weight:600;
+}
+.login-box .login-footer{
+font-size:0.68rem;
+color:var(--gray-400);
+margin-top:18px;
+line-height:1.5;
+}
+.login-box .login-logo{
+width:70%;
+max-width:220px;
+height:auto;
+margin:0 auto 14px;
+display:block;
+}
 </style>
 </head>
 <body>
+
+<div id="loginOverlay" class="login-overlay">
+<div class="login-box">
+<h2>SUNDAY 志望校判定システム</h2>
+<div class="login-subtitle">保護者・生徒専用ログイン</div>
+<div class="login-input-group">
+<label for="loginPassword">今月のパスワード</label>
+<input type="password" id="loginPassword" placeholder="パスワードを入力" autocomplete="off" onkeydown="if(event.key==='Enter')submitLogin()">
+</div>
+<button class="login-btn" onclick="submitLogin()">ログイン</button>
+<div class="login-error" id="loginError"></div>
+<div class="login-footer">※パスワードは毎月1日に更新されます<br>SUNDAY在塾生にLINE公式アカウントでお知らせします</div>
+</div>
+</div>
 
 <header>
 <div class="header-inner">
@@ -1020,6 +1134,131 @@ padding:8px;
 </nav>
 
 <script>
+// ========== ログイン認証システム ==========
+// 月ごとのパスワード（SHA-256ハッシュ）
+// 年度が変わっても同じ月は同じパスワード
+var MONTHLY_PASSWORD_HASHES = {
+  1:  "d390674795db38f70abcaef54f7d77c7af542cbf495bbb5114dfe3e3a79a231d",
+  2:  "8ae2a511e86c43a8ccfa119c191b7169b57f778c6d596bfed846448180e9aeb4",
+  3:  "4e41838726a7f879a15dc32e6227a69ffaac73c880ab8ad915dd02dd4a7a8873",
+  4:  "c8af5159309d6a67f874c08682077bd8d7532c8507496d9a49cb911d8bffab02",
+  5:  "9c6ab73efb60ec7ecd887bf8307b67011194ca6f42ce37ca238eb5c8e83f977e",
+  6:  "eb59dcb84dc3197506970a4706de281531cafe45653e52efc9c7bb4814137bfe",
+  7:  "1a77686eff65e383c68f13b0d20e461f456ff0d4187aa707654a9e9cdeb81d1f",
+  8:  "63e6f12b7f836590aaf6c7af664da0e166a40917de4084e253252663a2b18557",
+  9:  "7828c9afb835ce640a474f7acb51cfbc023b3ded49271d6de2f4b791f1c05689",
+  10: "5e7f241dae7fbf46f312bfd0998903b3e7470907b4f8c0783b3400783d102b99",
+  11: "9f4197ae65ff8eb343afc0f034750d8d4d83ca65356e52225fab737b43bd1a5b",
+  12: "675a848453635cb7a860bd80f9c8d6c66f83a3b1abf8495d57e5ae312d8e7ed6"
+};
+
+var LOGIN_STORAGE_KEY = 'sunday_hantei_login_v1';
+
+// 文字列をSHA-256ハッシュ化
+async function sha256Hex(str) {
+  var buf = new TextEncoder().encode(str);
+  var hashBuf = await crypto.subtle.digest('SHA-256', buf);
+  var bytes = new Uint8Array(hashBuf);
+  var hex = '';
+  for (var i = 0; i < bytes.length; i++) {
+    hex += bytes[i].toString(16).padStart(2, '0');
+  }
+  return hex;
+}
+
+// 今月の月末（翌月1日0:00のタイムスタンプ）を返す
+function getCurrentMonthEndTs() {
+  var now = new Date();
+  // 翌月1日 0時0分0秒
+  return new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0).getTime();
+}
+
+// localStorageに保存された有効期限をチェック
+function isLoggedIn() {
+  try {
+    var raw = localStorage.getItem(LOGIN_STORAGE_KEY);
+    if (!raw) return false;
+    var data = JSON.parse(raw);
+    if (!data || typeof data.expiresAt !== 'number') return false;
+    return Date.now() < data.expiresAt;
+  } catch (e) {
+    return false;
+  }
+}
+
+// ログイン成功情報を保存
+function saveLoginState() {
+  var data = {
+    expiresAt: getCurrentMonthEndTs(),
+    loggedAt: Date.now()
+  };
+  try {
+    localStorage.setItem(LOGIN_STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    // localStorage使えない場合は何もしない（セッション限りで有効）
+  }
+}
+
+// パスワードを検証
+async function submitLogin() {
+  var input = document.getElementById('loginPassword');
+  var errorEl = document.getElementById('loginError');
+  var pwd = (input.value || '').trim();
+  errorEl.textContent = '';
+
+  if (!pwd) {
+    errorEl.textContent = 'パスワードを入力してください';
+    return;
+  }
+
+  try {
+    var hash = await sha256Hex(pwd);
+    var month = new Date().getMonth() + 1; // 1-12
+    var expected = MONTHLY_PASSWORD_HASHES[month];
+    if (hash === expected) {
+      saveLoginState();
+      hideLoginOverlay();
+    } else {
+      errorEl.textContent = 'パスワードが正しくありません';
+      input.value = '';
+      input.focus();
+    }
+  } catch (e) {
+    errorEl.textContent = 'ログイン処理でエラーが発生しました';
+  }
+}
+
+function hideLoginOverlay() {
+  var ov = document.getElementById('loginOverlay');
+  if (ov) ov.classList.add('hidden');
+}
+
+function showLoginOverlay() {
+  var ov = document.getElementById('loginOverlay');
+  if (ov) ov.classList.remove('hidden');
+  var input = document.getElementById('loginPassword');
+  if (input) {
+    input.value = '';
+    setTimeout(function(){ input.focus(); }, 100);
+  }
+}
+
+// 初期ログイン判定（ページロード時に実行）
+(function initLoginGate(){
+  if (isLoggedIn()) {
+    // ログイン済み → オーバーレイを非表示
+    document.addEventListener('DOMContentLoaded', function(){
+      hideLoginOverlay();
+    });
+  } else {
+    // 未ログイン → オーバーレイを表示（CSSでデフォルト表示なのでinputにフォーカスだけ）
+    document.addEventListener('DOMContentLoaded', function(){
+      showLoginOverlay();
+    });
+  }
+})();
+// ========== /ログイン認証システム ==========
+
 const SCHOOLS = [
   {
     id: 1,
