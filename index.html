@@ -974,7 +974,7 @@ display:block;
 </div>
 <button class="login-btn" onclick="submitLogin()">ログイン</button>
 <div class="login-error" id="loginError"></div>
-<div class="login-footer">※パスワードは毎月1日に更新されます<br>SUNDAY在塾生にLINE公式アカウントでお知らせします</div>
+<div class="login-footer">※パスワードは毎月5日に更新されます<br>SUNDAY在塾生にLINE公式アカウントでお知らせします</div>
 </div>
 </div>
 
@@ -1152,7 +1152,9 @@ var MONTHLY_PASSWORD_HASHES = {
   12: "675a848453635cb7a860bd80f9c8d6c66f83a3b1abf8495d57e5ae312d8e7ed6"
 };
 
-var LOGIN_STORAGE_KEY = 'sunday_hantei_login_v1';
+// パスワードは毎月5日0:00に切り替わる
+// 例: 4/5 0:00 ～ 5/5 0:00 の期間は4月のパスワードが有効
+var LOGIN_STORAGE_KEY = 'sunday_hantei_login_v2';
 
 // 文字列をSHA-256ハッシュ化
 async function sha256Hex(str) {
@@ -1166,11 +1168,32 @@ async function sha256Hex(str) {
   return hex;
 }
 
-// 今月の月末（翌月1日0:00のタイムスタンプ）を返す
-function getCurrentMonthEndTs() {
+// 今日現在、どの月のパスワードが有効かを返す（1〜12）
+// 5日未満 → 先月のパスワード、5日以降 → 今月のパスワード
+function getCurrentPasswordMonth() {
   var now = new Date();
-  // 翌月1日 0時0分0秒
-  return new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0).getTime();
+  var day = now.getDate();
+  var month = now.getMonth() + 1; // 1-12
+  if (day < 5) {
+    month = month - 1;
+    if (month === 0) month = 12;
+  }
+  return month;
+}
+
+// 現在有効なパスワードの有効期限（次回の5日0:00）を返す
+function getCurrentPasswordExpiryTs() {
+  var now = new Date();
+  var day = now.getDate();
+  var year = now.getFullYear();
+  var month = now.getMonth(); // 0-11
+  if (day < 5) {
+    // 今月の5日 0:00 で切り替わる
+    return new Date(year, month, 5, 0, 0, 0, 0).getTime();
+  } else {
+    // 翌月の5日 0:00 で切り替わる
+    return new Date(year, month + 1, 5, 0, 0, 0, 0).getTime();
+  }
 }
 
 // localStorageに保存された有効期限をチェック
@@ -1189,7 +1212,7 @@ function isLoggedIn() {
 // ログイン成功情報を保存
 function saveLoginState() {
   var data = {
-    expiresAt: getCurrentMonthEndTs(),
+    expiresAt: getCurrentPasswordExpiryTs(),
     loggedAt: Date.now()
   };
   try {
@@ -1213,7 +1236,7 @@ async function submitLogin() {
 
   try {
     var hash = await sha256Hex(pwd);
-    var month = new Date().getMonth() + 1; // 1-12
+    var month = getCurrentPasswordMonth(); // 5日未満なら先月、5日以降なら今月
     var expected = MONTHLY_PASSWORD_HASHES[month];
     if (hash === expected) {
       saveLoginState();
