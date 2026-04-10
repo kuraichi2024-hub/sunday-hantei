@@ -7164,9 +7164,11 @@ function judgeSchool(school) {
 }
 
 function judgeSchoolPrivate(school) {
-  // 偏差値 = 0.1775 * 自己診テスト点(500点満点) - 4.21
+  // 偏差値 = -0.0000686 * 点² + 0.1577 * 点 + 9.853
+  // 420→64, 300→51, 250→45 を通る二次関数（下限25/上限75でクランプ）
   var rawScore5 = Math.round(myToujitsu5 / 0.7);
-  var myHensachi = 0.1775 * rawScore5 - 4.21;
+  var myHensachi = -0.0000686275 * rawScore5 * rawScore5 + 0.157745 * rawScore5 + 9.853;
+  myHensachi = Math.max(25, Math.min(75, myHensachi));
   var schoolHensachi = school.hensachi || 0;
   var diff = myHensachi - schoolHensachi;
   var grade;
@@ -7272,7 +7274,8 @@ function renderList() {
   var insertIndex = filtered.length;
   if (currentFilter === '私立') {
     var rawScore5 = Math.round(myToujitsu5 / 0.7);
-    var myHensachi = 0.1775 * rawScore5 - 4.21;
+    var myHensachi = -0.0000686275 * rawScore5 * rawScore5 + 0.157745 * rawScore5 + 9.853;
+    myHensachi = Math.max(25, Math.min(75, myHensachi));
     for (var i = 0; i < filtered.length; i++) {
       if (myHensachi >= (filtered[i].hensachi || 0)) {
         insertIndex = i;
@@ -7383,7 +7386,9 @@ function buildYouMarker() {
 
   if (currentFilter === '私立') {
     var rawScore5 = Math.round(myToujitsu5 / 0.7);
-    var myHensachi = Math.round((0.1775 * rawScore5 - 4.21) * 10) / 10;
+    var rawH = -0.0000686275 * rawScore5 * rawScore5 + 0.157745 * rawScore5 + 9.853;
+    rawH = Math.max(25, Math.min(75, rawH));
+    var myHensachi = Math.round(rawH * 10) / 10;
     h += '<div class="you-marker-title">あなたの位置（偏差値 ' + myHensachi + '）</div>';
     h += '<div class="you-marker-detail">自己診テスト ' + rawScore5 + '点 → 偏差値換算 ' + myHensachi + '</div>';
   } else {
