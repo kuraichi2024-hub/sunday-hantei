@@ -970,7 +970,7 @@ display:block;
 <div class="login-subtitle">保護者・生徒専用ログイン</div>
 <div class="login-input-group">
 <label for="loginPassword">今月のパスワード</label>
-<input type="password" id="loginPassword" placeholder="パスワードを入力" autocomplete="off" onkeydown="if(event.key==='Enter')submitLogin()">
+<input type="text" id="loginPassword" placeholder="パスワードを入力" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')submitLogin()">
 </div>
 <button class="login-btn" onclick="submitLogin()">ログイン</button>
 <div class="login-error" id="loginError"></div>
