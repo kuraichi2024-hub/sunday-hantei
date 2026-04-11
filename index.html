@@ -7273,10 +7273,12 @@ function getDistance(schoolName) {
 }
 
 function getGrade(ratio) {
-  if (ratio >= 1.0) return { letter: 'A', color: '#22c55e' };
-  if (ratio >= 0.9) return { letter: 'B', color: '#3b82f6' };
-  if (ratio >= 0.75) return { letter: 'C', color: '#eab308' };
-  if (ratio >= 0.6) return { letter: 'D', color: '#f97316' };
+  // 公立高校用：合格圏内（ratio=1.0）は80%合格ライン → B判定
+  // 偏差値+5相当（≒ ratio +0.07）で A判定
+  if (ratio >= 1.07) return { letter: 'A', color: '#22c55e' };
+  if (ratio >= 1.00) return { letter: 'B', color: '#3b82f6' };
+  if (ratio >= 0.93) return { letter: 'C', color: '#eab308' };
+  if (ratio >= 0.85) return { letter: 'D', color: '#f97316' };
   return { letter: 'E', color: '#ef4444' };
 }
 
@@ -7313,11 +7315,13 @@ function judgeSchoolPrivate(school) {
   myHensachi = Math.max(25, Math.min(75, myHensachi));
   var schoolHensachi = school.hensachi || 0;
   var diff = myHensachi - schoolHensachi;
+  // 私立高校用：学校偏差値にタッチ（diff=0）で B判定（80%合格圏）
+  // 偏差値+5 で A判定
   var grade;
   if (diff >= 5) grade = { letter: 'A', color: '#22c55e' };
-  else if (diff >= 2) grade = { letter: 'B', color: '#3b82f6' };
-  else if (diff >= -2) grade = { letter: 'C', color: '#eab308' };
-  else if (diff >= -5) grade = { letter: 'D', color: '#f97316' };
+  else if (diff >= 0) grade = { letter: 'B', color: '#3b82f6' };
+  else if (diff >= -5) grade = { letter: 'C', color: '#eab308' };
+  else if (diff >= -10) grade = { letter: 'D', color: '#f97316' };
   else grade = { letter: 'E', color: '#ef4444' };
   return {
     naishin: grade,
