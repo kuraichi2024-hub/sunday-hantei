@@ -7272,13 +7272,16 @@ function getDistance(schoolName) {
   return haversine(userLat, userLng, coords[0], coords[1]);
 }
 
-function getGrade(ratio) {
-  // 公立高校用：合格圏内（ratio=1.0）は80%合格ライン → B判定
-  // 偏差値+5相当（≒ ratio +0.07）で A判定
-  if (ratio >= 1.07) return { letter: 'A', color: '#22c55e' };
-  if (ratio >= 1.00) return { letter: 'B', color: '#3b82f6' };
-  if (ratio >= 0.93) return { letter: 'C', color: '#eab308' };
-  if (ratio >= 0.85) return { letter: 'D', color: '#f97316' };
+// 公立高校の判定（内申/当日/総合）は絶対差ベースに統一。
+// タッチ(diff=0)は80%合格圏 → B判定。
+// 各項目の「+5偏差値相当」の点差で A判定。
+//   内申: +5点、当日: +25点（5点×5教科）、総合: +25点
+function getGradeDiff(my, req, gap) {
+  var diff = my - req;
+  if (diff >=  gap)    return { letter: 'A', color: '#22c55e' };
+  if (diff >=  0)      return { letter: 'B', color: '#3b82f6' };
+  if (diff >= -gap)    return { letter: 'C', color: '#eab308' };
+  if (diff >= -2*gap)  return { letter: 'D', color: '#f97316' };
   return { letter: 'E', color: '#ef4444' };
 }
 
@@ -7295,9 +7298,9 @@ function judgeSchool(school) {
   var toujitsuRatio = school.requiredExamScore > 0 ? myToujitsu / school.requiredExamScore : 1;
   var totalRatio = school.requiredTotalScore > 0 ? myTotalForSchool / school.requiredTotalScore : 1;
   return {
-    naishin: getGrade(naishinRatio),
-    toujitsu: getGrade(toujitsuRatio),
-    total: getGrade(totalRatio),
+    naishin: getGradeDiff(myNaishin, school.requiredNaishin, 5),
+    toujitsu: getGradeDiff(myToujitsu, school.requiredExamScore, 25),
+    total: getGradeDiff(myTotalForSchool, school.requiredTotalScore, 25),
     naishinRatio: naishinRatio,
     toujitsuRatio: toujitsuRatio,
     totalRatio: totalRatio,
