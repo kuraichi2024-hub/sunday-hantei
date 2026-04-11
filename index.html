@@ -803,7 +803,7 @@ header{position:relative !important;box-shadow:none !important;padding:8px 16px 
 header .logo{width:40% !important;max-width:150px !important}
 header h1{font-size:0.9rem !important}
 header .subtitle{font-size:0.6rem !important}
-#inputScreen,#resultScreen,#encyclopediaScreen{display:none !important}
+#inputScreen,#resultScreen,#encyclopediaScreen,#qaScreen{display:none !important}
 #schoolDetailScreen{display:block !important}
 #schoolDetailScreen .detail-back-btn{display:none !important}
 .btn-print{display:none !important}
@@ -859,6 +859,94 @@ font-size:0.75rem;
 color:var(--gray-400);
 margin:8px 0;
 padding:8px;
+}
+/* 質問コーナー画面 */
+.qa-open-btn{
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+gap:4px;
+text-decoration:none;
+background:linear-gradient(135deg,var(--primary),var(--primary-light));
+color:var(--white);
+padding:18px 16px;
+border-radius:12px;
+box-shadow:0 6px 16px rgba(26,71,138,0.3);
+transition:transform 0.1s,box-shadow 0.2s;
+text-align:center;
+}
+.qa-open-btn:active{
+transform:translateY(1px);
+box-shadow:0 3px 8px rgba(26,71,138,0.3);
+}
+.qa-open-btn .qa-btn-icon{
+font-size:1.6rem;
+line-height:1;
+margin-bottom:2px;
+}
+.qa-open-btn .qa-btn-text{
+font-size:1.05rem;
+font-weight:700;
+letter-spacing:0.05em;
+}
+.qa-open-btn .qa-btn-sub{
+font-size:0.7rem;
+opacity:0.85;
+font-weight:500;
+}
+.qa-steps{
+list-style:none;
+counter-reset:qa-counter;
+padding:0;
+margin:0;
+}
+.qa-steps li{
+counter-increment:qa-counter;
+position:relative;
+padding:8px 0 8px 36px;
+font-size:0.85rem;
+color:var(--gray-700);
+line-height:1.6;
+border-bottom:1px dashed var(--gray-200);
+}
+.qa-steps li:last-child{border-bottom:none}
+.qa-steps li::before{
+content:counter(qa-counter);
+position:absolute;
+left:0;
+top:8px;
+width:24px;
+height:24px;
+background:var(--primary);
+color:var(--white);
+border-radius:50%;
+font-size:0.78rem;
+font-weight:900;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+.qa-examples{
+list-style:none;
+padding:0;
+margin:0;
+}
+.qa-examples li{
+padding:8px 0 8px 22px;
+font-size:0.82rem;
+color:var(--gray-700);
+line-height:1.55;
+position:relative;
+border-bottom:1px dashed var(--gray-200);
+}
+.qa-examples li:last-child{border-bottom:none}
+.qa-examples li::before{
+content:"💭";
+position:absolute;
+left:0;
+top:8px;
+font-size:0.85rem;
 }
 .login-overlay{
 position:fixed;
@@ -1120,6 +1208,56 @@ display:block;
 </div>
 </div>
 
+<div id="qaScreen" class="screen">
+<div class="container">
+
+<div class="card">
+<div class="card-title"><span class="icon">問</span>質問コーナー</div>
+<p style="font-size:0.85rem;color:var(--gray-700);line-height:1.75;margin-bottom:10px;">
+<strong style="color:var(--primary);">渡辺の指導ノウハウと岡山県の高校入試情報を学習させた、SUNDAY独自のAI</strong>に何でも質問できます。
+</p>
+<p style="font-size:0.78rem;color:var(--gray-600);line-height:1.7;margin-bottom:14px;">
+ChatGPTなどの一般的なAIとは違い、岡山県の高校入試・内申点制度・各校の特色について、より正確にお答えします。24時間いつでもご利用いただけます。
+</p>
+
+<a href="https://notebooklm.google.com/notebook/afcc2a19-bcb3-423c-8b58-e4c4210528e0" target="_blank" rel="noopener noreferrer" class="qa-open-btn">
+<span class="qa-btn-icon">💬</span>
+<span class="qa-btn-text">SUNDAY AIに質問する</span>
+<span class="qa-btn-sub">新しいタブで開きます</span>
+</a>
+</div>
+
+<div class="card">
+<div class="card-title"><span class="icon">使</span>使い方</div>
+<ol class="qa-steps">
+<li><strong>上のボタンをタップ</strong>してAIの画面を開きます</li>
+<li>画面下の<strong>入力欄に質問を入力</strong>してください</li>
+<li>渡辺の知識をもとに、<strong>SUNDAY AI が回答</strong>します</li>
+<li>追加の質問もそのまま続けてできます</li>
+</ol>
+</div>
+
+<div class="card">
+<div class="card-title"><span class="icon">例</span>質問の例</div>
+<ul class="qa-examples">
+<li>岡山朝日高校の倍率はどのくらい？</li>
+<li>内申点を上げるにはどうすればいい？</li>
+<li>就実高校の特別進学コースの特徴は？</li>
+<li>私立と公立、どちらを第一志望にすべき？</li>
+<li>自己診テストで350点を目指すには？</li>
+</ul>
+</div>
+
+<div class="card" style="background:#fff7ed;border-left:4px solid #f97316;">
+<div style="font-size:0.78rem;color:#7c2d12;line-height:1.6;">
+<strong style="color:#c2410c;">⚠ ご注意</strong><br>
+AIの回答はあくまで参考情報です。重要な進路判断については、必ず教室スタッフまたは渡辺までご相談ください。
+</div>
+</div>
+
+</div>
+</div>
+
 <nav class="bottom-nav" id="bottomNav">
 <div class="bottom-nav-inner">
 <button class="bottom-nav-btn active" id="navHantei" onclick="showTab('hantei')">
@@ -1129,6 +1267,10 @@ display:block;
 <button class="bottom-nav-btn" id="navEncyclopedia" onclick="showTab('encyclopedia')">
 <span class="nav-icon">📖</span>
 <span>学校図鑑</span>
+</button>
+<button class="bottom-nav-btn" id="navQa" onclick="showTab('qa')">
+<span class="nav-icon">💬</span>
+<span>質問コーナー</span>
 </button>
 </div>
 </nav>
@@ -7462,7 +7604,7 @@ var lastHanteiScreen = 'inputScreen'; // 判定系で最後に見ていた画面
 
 function showTab(tab) {
   currentTab = tab;
-  var allScreens = ['inputScreen','resultScreen','encyclopediaScreen','schoolDetailScreen'];
+  var allScreens = ['inputScreen','resultScreen','encyclopediaScreen','schoolDetailScreen','qaScreen'];
   for (var i = 0; i < allScreens.length; i++) {
     document.getElementById(allScreens[i]).classList.remove('active');
   }
@@ -7470,6 +7612,7 @@ function showTab(tab) {
   // ナビボタンの状態更新
   document.getElementById('navHantei').classList.remove('active');
   document.getElementById('navEncyclopedia').classList.remove('active');
+  document.getElementById('navQa').classList.remove('active');
 
   if (tab === 'hantei') {
     document.getElementById('navHantei').classList.add('active');
@@ -7478,6 +7621,9 @@ function showTab(tab) {
     document.getElementById('navEncyclopedia').classList.add('active');
     document.getElementById('encyclopediaScreen').classList.add('active');
     renderEncyclopedia();
+  } else if (tab === 'qa') {
+    document.getElementById('navQa').classList.add('active');
+    document.getElementById('qaScreen').classList.add('active');
   }
   window.scrollTo(0, 0);
 }
