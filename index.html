@@ -1051,6 +1051,18 @@ display:block;
 </style>
 </head>
 <body>
+<div id="__backbar" onclick="__back()" style="position:sticky;top:0;z-index:99999;background:#1f3a5f;color:#fff;font-weight:800;font-size:14px;padding:11px 16px;cursor:pointer;font-family:-apple-system,'Hiragino Kaku Gothic ProN',sans-serif;">← 戻る</div>
+<script>
+(function(){
+  function killOverlay(){ var ov=document.getElementById('loginOverlay'); if(ov&&ov.parentNode)ov.parentNode.removeChild(ov); }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',killOverlay);
+  killOverlay();
+  window.showLoginOverlay=function(){};
+  document.addEventListener('DOMContentLoaded',function(){ if(!/[?&]back=/.test(location.search)){ var b=document.getElementById('__backbar'); if(b)b.style.display='none'; } });
+})();
+function __back(){ var m=location.search.match(/[?&]back=([^&]+)/); if(m){ window.open(decodeURIComponent(m[1]),'_top'); } else { history.back(); } }
+</script>
+
 
 <div id="loginOverlay" class="login-overlay">
 <div class="login-box">
@@ -1268,10 +1280,7 @@ AIの回答はあくまで参考情報です。重要な進路判断について
 <span class="nav-icon">📖</span>
 <span>学校図鑑</span>
 </button>
-<button class="bottom-nav-btn" id="navQa" onclick="showTab('qa')">
-<span class="nav-icon">☀️</span>
-<span>サニーに質問する</span>
-</button>
+<!-- サニータブ削除（ポータルへ移動） -->
 </div>
 </nav>
 
