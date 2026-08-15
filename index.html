@@ -7786,13 +7786,11 @@ function showTab(tab) {
   currentTab = tab;
   var allScreens = ['inputScreen','resultScreen','encyclopediaScreen','schoolDetailScreen','qaScreen'];
   for (var i = 0; i < allScreens.length; i++) {
-    document.getElementById(allScreens[i]).classList.remove('active');
+    var _sc = document.getElementById(allScreens[i]); if (_sc) _sc.classList.remove('active');
   }
 
-  // ナビボタンの状態更新
-  document.getElementById('navHantei').classList.remove('active');
-  document.getElementById('navEncyclopedia').classList.remove('active');
-  document.getElementById('navQa').classList.remove('active');
+  // ナビボタンの状態更新（削除済みタブ navQa 等が無くても落ちないように null ガード）
+  ['navHantei','navEncyclopedia','navQa'].forEach(function(id){ var el = document.getElementById(id); if (el) el.classList.remove('active'); });
 
   if (tab === 'hantei') {
     document.getElementById('navHantei').classList.add('active');
@@ -7802,8 +7800,8 @@ function showTab(tab) {
     document.getElementById('encyclopediaScreen').classList.add('active');
     renderEncyclopedia();
   } else if (tab === 'qa') {
-    document.getElementById('navQa').classList.add('active');
-    document.getElementById('qaScreen').classList.add('active');
+    var _nq = document.getElementById('navQa'); if (_nq) _nq.classList.add('active');
+    var _qs = document.getElementById('qaScreen'); if (_qs) _qs.classList.add('active');
   }
   window.scrollTo(0, 0);
 }
